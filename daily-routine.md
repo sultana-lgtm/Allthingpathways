@@ -4,7 +4,7 @@ The day is built around the five prayers, so the times shift with the seasons. U
 
 ## Ground rules
 1. **The real fix for Fajr is an earlier bedtime.** Fajr at 5:30 needs lights out by about 10:00 pm for 7+ hours of sleep. Everything else is secondary.
-2. **Minimum version always counts.** On a bad day, do only the **floor** items. That's a win.
+2. **Keep it small so every day is a good day.** The must-do items are marked **core**. Everything else is a bonus, not a test.
 3. **Gym starts tiny.** Weeks 1-2: 2 sessions x 20-30 min. Weeks 3-4: 3 sessions. Add more only after 4 steady weeks.
 4. **Timers and cues.** Use 25-min focus sprints with 5-min breaks. Put on the same playlist for admin blocks as a "start" cue.
 5. **One inbox.** All tasks from all three businesses go in one list. Nothing lives in your head.
@@ -23,7 +23,7 @@ The day is built around the five prayers, so the times shift with the seasons. U
 | 4 | Put water and your prayer clothes next to the bed. Do wudu straight away, before you think about it. |
 | 5 | Get light: open curtains or turn on lights right after praying. Light is what keeps you awake after Fajr. |
 | 6 | Don't go back to bed after praying. If you're wrecked, take a **20-min nap at Dhuhr or mid-afternoon** instead. |
-| Floor | Just get up and pray Fajr. Everything else can be shifted. |
+| Core | Get up and pray Fajr. Everything else is a bonus. |
 
 If you're still awake late on some nights, keep the Fajr alarm anyway. Consistency matters more than perfection, and you can nap the next afternoon.
 
@@ -33,7 +33,7 @@ If you're still awake late on some nights, keep the Fajr alarm anyway. Consisten
 
 | Time (example) | What | Notes |
 |---|---|---|
-| Fajr (~5:30) | Wake, wudu, **pray Fajr** | **Floor: this + water** |
+| Fajr (~5:30) | Wake, wudu, **pray Fajr** | **Core: this + water** |
 | +15 min | Adhkar and Quran (5-10 min), water, meds/vitamins, lights on | |
 | ~6:15 | Protein breakfast, gym bag by the door | |
 | ~6:45 | **Gym (30-40 min)**, or a 20-min walk on non-gym days | See gym plan below |
@@ -57,9 +57,9 @@ Rotate business blocks: A/B/C on Monday, B/C/A on Wednesday, C/A/B on Friday.
 
 | Time (example) | What | Notes |
 |---|---|---|
-| Fajr (~5:30) | Wake, wudu, **pray Fajr**, adhkar/Quran | **Floor: Fajr + water** |
+| Fajr (~5:30) | Wake, wudu, **pray Fajr**, adhkar/Quran | **Core: Fajr + water** |
 | ~6:15 | Protein breakfast, **pack food and water for the day** | Prep the night before |
-| ~7:00 | **10-min stretching or mobility** | Floor: 5 min |
+| ~7:00 | **10-min stretching or mobility** | Core: 5 min |
 | ~7:45 | Get ready and depart | Audiobook, Quran or podcast for the journey |
 | Dhuhr (~1:00) | **Pray Dhuhr and eat something with protein** in your break | Find your prayer spot in advance. Set a phone alarm. |
 | Asr (~4:00) | **Pray Asr** if you can (a short gap, or right after teaching) | Check your prayer app for the window |
@@ -111,7 +111,7 @@ Make it easy to start: gym bag by the door, same time each day, and a rule of "j
 - Did I make Fajr on most days?
 - Did I take a real lunch on admin days?
 - Did I have at least one fully-off block?
-- If two or more answers are "no", drop a habit back to its floor for a week. Don't add more.
+- If two or more answers are "no", pause adding anything new for a week and just keep the core items.
 
 ---
 
@@ -132,60 +132,23 @@ How to use it: one scoop in the morning after Fajr (or after the gym on admin da
 
 ---
 
-## Energy, fatigue and symptom management (suspected endometriosis)
+## Steady energy (periods, fatigue, burnout)
 
-This is a planning aid, not medical advice. I can't diagnose anything. See "Get it checked" below.
+The aim is a routine that gives you energy and doesn't take it. It's built to feel easy from day one.
 
-### Get it checked (highest-value step)
-- Book a GP/doctor appointment for the fatigue and suspected endometriosis. Diagnosis often takes a long time, so start the process now.
-- Before the appointment, track for 2-3 months: pain (0-10), location, bleeding, fatigue (0-10), bowel/bladder symptoms, sleep, and what you did that day. Bring it with you. It makes the appointment far more useful.
-- Ask about blood tests for common causes of fatigue (for example iron/ferritin, B12, vitamin D, thyroid). These are common and treatable, and can add to the tiredness.
-- Ask for a referral if your symptoms match. Say it in plain terms: "I think I may have endometriosis and I want it investigated."
-- Ask about ADHD too, if you have not been assessed. Both conditions affect energy, sleep and how you plan the day.
+### Habits that protect your energy
+- **Sleep first.** Lights out around 10:00 pm and the Fajr alarm are the biggest levers for fatigue.
+- **Regular meals with protein and fiber.** Skipping meals on teaching days drains you. Use the easy food system in `easy-routine.md`.
+- **Build in a buffer.** One unscheduled 30-min block each day for overruns and rest, plus Dhuhr and Asr as breaks.
+- **Protect teaching-day evenings.** No chores or admin. Easy dinner, quiet time.
+- **Keep the gym small.** 2 sessions a week is plenty, and moving your body should leave you feeling better, not wiped out.
+- **Rest before you're tired.** Short breaks all day beat one big crash.
 
-### Energy budget (pacing, not pushing)
-Think of each day as having a limited number of "spoons". Plan the week with that in mind.
-- **Teaching days are your highest-cost days.** Protect the evening: no chores, no admin, easy dinner.
-- **Admin days cost less**, but with three businesses they can quietly become 10 hours. Cap the day using the shutdown ritual.
-- **Never stack a gym session on top of a bad-sleep or flare day.**
-- **One "buffer" block a day** (30 min, unscheduled) to absorb overruns and rests.
-- **Rest before you crash.** Short breaks are better than one long recovery day.
+### Periods
+- Note when your period is due (an app works well) and plan around it: heavy admin and deadlines in the higher-energy days, lighter tasks and gentler movement when you're lower.
+- Keep heat packs, snacks, water and any pain relief you normally use somewhere easy to reach.
+- Since you have heavy or painful periods and ongoing fatigue, it's worth mentioning to a doctor at some point. A blood test for iron, B12, vitamin D and thyroid is a common and simple first step, and it can uncover easy fixes for tiredness. Only if and when you want to.
 
-### Three modes for any day
-Check how you feel after Fajr and pick the mode. Choosing a mode counts as a win. Don't argue with yourself.
-
-| Mode | When | What you do |
-|---|---|---|
-| **Green** | Good energy, low pain | The normal routine above |
-| **Amber** | Tired, mild pain, poor sleep | Skip the gym and do a 10-15 min walk or stretch. Do only the top 3 tasks. Take a 20-min nap after Dhuhr. Eat the easy meals. |
-| **Red** | Flare, bad pain or exhaustion | **Floor only:** Fajr (prayed seated if you need to), water, protein, meds, heat pad, one urgent task if any. Cancel or delegate the rest. |
-
-Set up a "Red day kit" once, so it's not a decision on the day:
-- Heat pad or hot water bottle, and any pain relief your doctor has approved
-- Ready meals and protein shake in the freezer or cupboard
-- A pre-written message you can send to clients or the businesses ("I'm out today, back tomorrow")
-- A short list of what can wait 24 hours
-
-### Gym and movement
-- Gentle, regular movement is usually recommended for fatigue and pain, but let your doctor advise on what's right for you.
-- Keep the plan at **2 sessions a week** for as long as you need. 3 is optional.
-- Use Amber/Red modes without guilt. Skipping a session on a flare day is part of the plan.
-- Prefer walking, strength work, yoga or swimming over intense sessions. Stop if something hurts in a sharp or unusual way.
-
-### Sleep and food
-- Sleep is the single biggest lever for fatigue. Protect the 10:00 pm bedtime and the Fajr alarm, and nap after Dhuhr when needed.
-- Keep meals regular with protein. Skipping meals on teaching days makes the tiredness and ADHD symptoms worse.
-- Add iron-rich foods (lentils, beans, greens, with vitamin C) since you're vegan, but get bloods checked before taking any supplements.
-- Keep the vegan protein shake, but don't rely on it for everything.
-
-### Cycle-aware planning
-- Once you're tracking, mark your higher-pain and lower-energy days on your calendar.
-- Put the heavy admin, deadlines and bigger decisions in your better-energy days, and lighter tasks in your worse ones.
-- Tell a trusted person (family, a colleague, a business partner) what a Red day looks like, so you're not managing it alone.
-
-### Burnout warning signs (act early)
-- Dreading tasks you normally handle, or skipping meals or prayers
-- Needing more than a day to recover from a normal week
-- Sleep getting worse, or running on adrenaline late at night
-
-If two or more show up, drop to Amber for the week, cancel one non-essential commitment, and talk to your doctor.
+### Keeping burnout away
+- Sunday 2-minute check: sleep, Fajr, a real lunch, one fully-off block.
+- If it starts to feel like too much, don't add anything. Cut one thing and keep the core items.

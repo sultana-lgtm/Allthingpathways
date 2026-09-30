@@ -5,7 +5,7 @@ If the full plan (`daily-routine.md`) feels like too much, use only this page.
 
 ## The 5 daily anchors (that's the whole routine)
 
-| # | Anchor | Floor (bad day) |
+| # | Anchor | Keep it simple |
 |---|---|---|
 | 1 | **Fajr**, then water and lights on | Just pray and drink water |
 | 2 | **Breakfast shake** (protein + fiber, 2 min) | Just the shake |
@@ -13,7 +13,7 @@ If the full plan (`daily-routine.md`) feels like too much, use only this page.
 | 4 | **Dhuhr / Asr as breaks** away from the screen | Stand up and stretch |
 | 5 | **Lights out around 10 pm**, phone across the room | Screens off, get into bed |
 
-Work days: teach Tue/Thu, admin Mon/Wed/Fri. Gym is a bonus. Two sessions a week is plenty. Skip it on tired days.
+Work days: teach Tue/Thu, admin Mon/Wed/Fri. Gym is a bonus: two easy sessions a week is plenty.
 
 ## The no-cook food system
 
@@ -59,9 +59,8 @@ Do this on Sunday or another quiet time:
 4. Write your top 3 admin tasks for Monday.
 
 ## Each day's two check-ins (30 seconds each)
-- **After Fajr:** Green, Amber or Red? (Full energy, tired, or flaring.)
-  - Green: normal day. Amber: skip the gym and do 3 tasks only. Red: floor only.
-- **Before bed:** Did I get protein and some fiber today? Yes/No. Set the shake for tomorrow.
+- **After Fajr:** pick your top 3 tasks for the day. That's it.
+- **Before bed:** Did I get protein and some fiber today? Set the shake for tomorrow.
 
 ## What to ignore for now
 Everything in the full plan that isn't on this page. Add things back only after 2 steady weeks. Order to add them: gym, stretching, the Sunday weekly reset, meal variety.
