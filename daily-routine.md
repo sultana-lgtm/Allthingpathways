@@ -129,3 +129,63 @@ Make it easy to start: gym bag by the door, same time each day, and a rule of "j
 - PhD Strawberry Cream Diet Plant Protein (about 20 g protein, with added extras)
 
 How to use it: one scoop in the morning after Fajr (or after the gym on admin days) so protein is sorted before work.
+
+---
+
+## Energy, fatigue and symptom management (suspected endometriosis)
+
+This is a planning aid, not medical advice. I can't diagnose anything. See "Get it checked" below.
+
+### Get it checked (highest-value step)
+- Book a GP/doctor appointment for the fatigue and suspected endometriosis. Diagnosis often takes a long time, so start the process now.
+- Before the appointment, track for 2-3 months: pain (0-10), location, bleeding, fatigue (0-10), bowel/bladder symptoms, sleep, and what you did that day. Bring it with you. It makes the appointment far more useful.
+- Ask about blood tests for common causes of fatigue (for example iron/ferritin, B12, vitamin D, thyroid). These are common and treatable, and can add to the tiredness.
+- Ask for a referral if your symptoms match. Say it in plain terms: "I think I may have endometriosis and I want it investigated."
+- Ask about ADHD too, if you have not been assessed. Both conditions affect energy, sleep and how you plan the day.
+
+### Energy budget (pacing, not pushing)
+Think of each day as having a limited number of "spoons". Plan the week with that in mind.
+- **Teaching days are your highest-cost days.** Protect the evening: no chores, no admin, easy dinner.
+- **Admin days cost less**, but with three businesses they can quietly become 10 hours. Cap the day using the shutdown ritual.
+- **Never stack a gym session on top of a bad-sleep or flare day.**
+- **One "buffer" block a day** (30 min, unscheduled) to absorb overruns and rests.
+- **Rest before you crash.** Short breaks are better than one long recovery day.
+
+### Three modes for any day
+Check how you feel after Fajr and pick the mode. Choosing a mode counts as a win. Don't argue with yourself.
+
+| Mode | When | What you do |
+|---|---|---|
+| **Green** | Good energy, low pain | The normal routine above |
+| **Amber** | Tired, mild pain, poor sleep | Skip the gym and do a 10-15 min walk or stretch. Do only the top 3 tasks. Take a 20-min nap after Dhuhr. Eat the easy meals. |
+| **Red** | Flare, bad pain or exhaustion | **Floor only:** Fajr (prayed seated if you need to), water, protein, meds, heat pad, one urgent task if any. Cancel or delegate the rest. |
+
+Set up a "Red day kit" once, so it's not a decision on the day:
+- Heat pad or hot water bottle, and any pain relief your doctor has approved
+- Ready meals and protein shake in the freezer or cupboard
+- A pre-written message you can send to clients or the businesses ("I'm out today, back tomorrow")
+- A short list of what can wait 24 hours
+
+### Gym and movement
+- Gentle, regular movement is usually recommended for fatigue and pain, but let your doctor advise on what's right for you.
+- Keep the plan at **2 sessions a week** for as long as you need. 3 is optional.
+- Use Amber/Red modes without guilt. Skipping a session on a flare day is part of the plan.
+- Prefer walking, strength work, yoga or swimming over intense sessions. Stop if something hurts in a sharp or unusual way.
+
+### Sleep and food
+- Sleep is the single biggest lever for fatigue. Protect the 10:00 pm bedtime and the Fajr alarm, and nap after Dhuhr when needed.
+- Keep meals regular with protein. Skipping meals on teaching days makes the tiredness and ADHD symptoms worse.
+- Add iron-rich foods (lentils, beans, greens, with vitamin C) since you're vegan, but get bloods checked before taking any supplements.
+- Keep the vegan protein shake, but don't rely on it for everything.
+
+### Cycle-aware planning
+- Once you're tracking, mark your higher-pain and lower-energy days on your calendar.
+- Put the heavy admin, deadlines and bigger decisions in your better-energy days, and lighter tasks in your worse ones.
+- Tell a trusted person (family, a colleague, a business partner) what a Red day looks like, so you're not managing it alone.
+
+### Burnout warning signs (act early)
+- Dreading tasks you normally handle, or skipping meals or prayers
+- Needing more than a day to recover from a normal week
+- Sleep getting worse, or running on adrenaline late at night
+
+If two or more show up, drop to Amber for the week, cancel one non-essential commitment, and talk to your doctor.
