@@ -1,68 +1,88 @@
-# Daily Routine (ADHD-friendly, burnout-proof)
+# Daily Routine (ADHD-friendly, burnout-proof, prayer-anchored)
 
-Assumes wake ~7:00 and lights out ~11:00. Shift times to suit you.
+The day is built around the five prayers, so the times shift with the seasons. Use a prayer-times app with notifications on for the exact times where you live. Clock times below are examples for a typical autumn day (Fajr about 5:30). Adjust them.
 
 ## Ground rules
-1. **Minimum version always counts.** A bad day = do only the bolded "floor" items. That's a win, not a fail.
-2. **Gym starts tiny.** Weeks 1-2: 2 sessions x 20-30 min. Weeks 3-4: 3 sessions. Only add more after 4 steady weeks.
-3. **Body-doubling and timers.** Use 25-min focus sprints with 5-min breaks (or 45/10 if you're in flow). Put on the same playlist for admin blocks as a "start" cue.
-4. **One list, one place.** Everything from all three businesses goes into a single inbox/brain-dump list. Nothing lives in your head.
-5. **Decide tomorrow tonight.** Pick your top 3 tasks for tomorrow before you finish.
+1. **The real fix for Fajr is an earlier bedtime.** Fajr at 5:30 needs lights out by about 10:00 pm for 7+ hours of sleep. Everything else is secondary.
+2. **Minimum version always counts.** On a bad day, do only the **floor** items. That's a win.
+3. **Gym starts tiny.** Weeks 1-2: 2 sessions x 20-30 min. Weeks 3-4: 3 sessions. Add more only after 4 steady weeks.
+4. **Timers and cues.** Use 25-min focus sprints with 5-min breaks. Put on the same playlist for admin blocks as a "start" cue.
+5. **One inbox.** All tasks from all three businesses go in one list. Nothing lives in your head.
+6. **Decide tomorrow tonight.** Pick tomorrow's top 3 tasks before you wind down.
+7. **Prayers are your natural breaks.** Dhuhr and Asr give you built-in resets in the middle of the workday. Use them to step away from the screen.
+
+---
+
+## Fixing Fajr (do this first, one step at a time)
+
+| Step | Action |
+|---|---|
+| 1 | **Move bedtime earlier by 15-20 min every few days** until you reach about 10:00 pm. Don't jump straight to it. |
+| 2 | Isha, then a wind-down. Screens down by 9:15, phone charging **across the room**. |
+| 3 | Set a Fajr alarm at the adhan time, plus a backup 10 min later. |
+| 4 | Put water and your prayer clothes next to the bed. Do wudu straight away, before you think about it. |
+| 5 | Get light: open curtains or turn on lights right after praying. Light is what keeps you awake after Fajr. |
+| 6 | Don't go back to bed after praying. If you're wrecked, take a **20-min nap at Dhuhr or mid-afternoon** instead. |
+| Floor | Just get up and pray Fajr. Everything else can be shifted. |
+
+If you're still awake late on some nights, keep the Fajr alarm anyway. Consistency matters more than perfection, and you can nap the next afternoon.
 
 ---
 
 ## Monday / Wednesday / Friday: Admin days (printing shop)
 
-| Time | What | Notes |
+| Time (example) | What | Notes |
 |---|---|---|
-| 7:00 | Wake, water, meds/vitamins, open curtains | **Floor:** water + light |
-| 7:15 | Gym clothes on, protein breakfast | Gym bag packed the night before |
-| 7:45 | **Gym (30-40 min)**, or a 20-min walk on non-gym days | See gym plan below |
-| 8:45 | Shower, get ready, travel to shop | |
-| 9:30 | **Arrive: 10-min setup.** Brain dump, pick top 3 for today | Write the 3 on a sticky note |
-| 9:45 | **Sprint block 1**: hardest/most-dreaded task first | Phone in a drawer |
-| 11:30 | Break: stretch, snack, walk outside | |
-| 11:45 | **Sprint block 2**: Business A | Rotate the business order weekly |
-| 1:00 | **Real lunch away from screen**, 30 min | Non-negotiable |
-| 1:45 | **Sprint block 3**: Business B | |
-| 3:15 | 10-min movement/tea break | |
-| 3:30 | **Sprint block 4**: Business C | |
-| 4:45 | Inbox sweep: emails, messages, quick replies only | Cap at 30 min |
-| 5:15 | **Shutdown ritual (10 min)**: update list, write tomorrow's top 3, tidy desk | Say "done" out loud |
-| 5:30 | Leave. Decompress: music/walk/podcast | No work chat after this |
+| Fajr (~5:30) | Wake, wudu, **pray Fajr** | **Floor: this + water** |
+| +15 min | Adhkar and Quran (5-10 min), water, meds/vitamins, lights on | |
+| ~6:15 | Protein breakfast, gym bag by the door | |
+| ~6:45 | **Gym (30-40 min)**, or a 20-min walk on non-gym days | See gym plan below |
+| ~8:00 | Shower, get ready, travel | |
+| ~9:00 | **Arrive: 10-min setup.** Brain dump, pick top 3 | Write them on a sticky note |
+| 9:15 | **Sprint block 1**: hardest/most-dreaded task first | Phone in a drawer |
+| 11:00 | Break: stretch, snack, walk | |
+| 11:15 | **Sprint block 2**: Business A | Rotate the order weekly |
+| **Dhuhr** (~1:00) | **Pray Dhuhr, then a real lunch** away from your screen | **Friday: Jumu'ah instead**. Plan travel time and leave the shop early. |
+| ~2:00 | **Sprint block 3**: Business B | |
+| **Asr** (~4:00) | **Pray Asr**, stretch, tea | |
+| ~4:15 | **Sprint block 4**: Business C, then inbox sweep (cap 30 min) | |
+| ~5:15 | **Shutdown ritual (10 min)**: update list, write tomorrow's top 3, tidy desk | Say "done" out loud |
+| ~5:30 | Leave. Decompress on the way home | No work chat after this |
+| **Maghrib** | Pray, dinner, family or free time | |
+| **Isha** | Pray, then start the evening wind-down | See below |
 
-Suggested rotation of business blocks: A/B/C on Monday, B/C/A on Wednesday, C/A/B on Friday, so nobody is always last.
+Rotate business blocks: A/B/C on Monday, B/C/A on Wednesday, C/A/B on Friday.
 
 ## Tuesday / Thursday: Teaching days (8:30-6:00 including travel)
 
-| Time | What | Notes |
+| Time (example) | What | Notes |
 |---|---|---|
-| 7:00 | Wake, water, meds/vitamins | |
-| 7:15 | Protein breakfast, **pack food and water** for the day | Prep the night before |
-| 7:45 | **10-min mobility or stretching** | Floor: 5 min |
-| 8:30 | Depart / teach | Audiobook or podcast for travel |
-| Midday | **Eat something with protein** on your break. Set a phone alarm | Teaching days are where meals get skipped |
-| 6:00 | Home. 20-30 min **no-demand time** (shower, quiet, snack) | Decompress before anything else |
-| 6:45 | Easy dinner (batch-cooked or a simple default meal) | |
-| 7:30 | 10-min admin triage only if something is urgent | Otherwise leave admin for Mon/Wed/Fri |
-| 8:00 | Free time | |
+| Fajr (~5:30) | Wake, wudu, **pray Fajr**, adhkar/Quran | **Floor: Fajr + water** |
+| ~6:15 | Protein breakfast, **pack food and water for the day** | Prep the night before |
+| ~7:00 | **10-min stretching or mobility** | Floor: 5 min |
+| ~7:45 | Get ready and depart | Audiobook, Quran or podcast for the journey |
+| Dhuhr (~1:00) | **Pray Dhuhr and eat something with protein** in your break | Find your prayer spot in advance. Set a phone alarm. |
+| Asr (~4:00) | **Pray Asr** if you can (a short gap, or right after teaching) | Check your prayer app for the window |
+| ~6:00 | Home. 20-30 min **no-demand time** (shower, snack, quiet) | |
+| **Maghrib** | Pray, easy dinner (batch-cooked or a simple default) | |
+| **Isha** | Pray, wind-down | Admin only if urgent. Otherwise leave it for Mon/Wed/Fri. |
 
-No gym on teaching days. They're long enough already. That's what protects you from burnout.
+No gym on teaching days. They're long enough already, and that's what protects you from burnout. An earlier Fajr also gives you time for breakfast and stretching without rushing.
 
 ## Every evening (all days)
 
 | Time | What |
 |---|---|
-| 9:30 | Pack gym bag, lay out clothes, fill water bottle, decide tomorrow's top 3 |
-| 10:00 | Screens down, dim lights, shower/wash up, meds |
-| 10:30 | Wind-down: reading, stretching, or a podcast in bed |
-| 11:00 | Lights out |
+| ~8:45 | Pack gym bag, lay out clothes, fill water bottle, decide tomorrow's top 3 |
+| ~9:15 | Screens down, dim lights, shower/wash up, meds |
+| ~9:30 | Wind-down: Quran, dhikr, reading, or stretching. Phone charging across the room. |
+| ~10:00 | **Lights out** (target, reached gradually) |
 
 ## Weekends
 
 - **One day: active** (walk, swim, bike, or a longer gym session) if energy allows.
-- **One day: fully off.** No admin, no business messages.
-- 20 min on Sunday evening: glance at the week ahead, set the 3 business priorities, meal-plan the teaching-day lunches.
+- **One day: fully off.** No admin, no business messages. Keep Fajr and sleep timing consistent, since a weekend lie-in undoes the week's progress.
+- 20 min on Sunday evening: glance at the week, set the 3 business priorities, meal-plan teaching-day lunches.
 
 ---
 
@@ -74,20 +94,21 @@ No gym on teaching days. They're long enough already. That's what protects you f
 | 3-4 | Mon + Wed + Fri | 30-40 min, same full-body template |
 | 5+ | Stay at 3, add weight/reps slowly | Add a weekend walk or swim if you want more |
 
-Make it easy to start: gym bag by the door, same time each day, and a rule of "just go for 10 minutes." Most days you'll stay. If not, 10 minutes still counts.
+On Fridays, if Jumu'ah timing gets tight, do the gym as the shorter 20-min version or swap it to Saturday.
 
-## Wellness habits (pick these up one at a time)
+Make it easy to start: gym bag by the door, same time each day, and a rule of "just go for 10 minutes."
 
-Add one new habit every 2 weeks:
-1. Water first thing and a bottle at your desk
-2. Protein at breakfast and lunch
-3. Gym Mon/Fri (then Wed)
-4. Shutdown ritual at the end of admin days
-5. Consistent bedtime
+## Wellness habits (add one every 2 weeks)
+1. **Earlier bedtime and Fajr on time** (start here)
+2. Water first thing and a bottle at your desk
+3. Protein at breakfast and lunch
+4. Gym Mon/Fri (then Wed)
+5. Shutdown ritual at the end of admin days
 6. Sunday 20-min weekly reset
 
 ## Burnout check (Sunday, 2 minutes)
 - Did I get 7+ hours of sleep on most nights?
+- Did I make Fajr on most days?
 - Did I take a real lunch on admin days?
 - Did I have at least one fully-off block?
 - If two or more answers are "no", drop a habit back to its floor for a week. Don't add more.
