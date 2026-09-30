@@ -25,6 +25,12 @@ Rule: **stop deciding what to eat. Have a default for each meal.**
 - Optional: half a banana or a spoon of oats
 - Takes 2 minutes, and you can drink it in the car or on the way to the shop
 
+**Zero-effort option: a ready-made shake.** Mom's Organic Market has a strawberry and cream shake that's already made. Grab a few for teaching days and rushed mornings. Check the label first:
+- Vegan? Some ready-to-drink shakes use milk or whey protein.
+- Protein: aim for 20 g or more per bottle.
+- Fiber: 3 g or more. If it's low, eat fruit or a handful of nuts or oats with it.
+- Sugar: lower is better.
+
 ### Lunch: ready meals (Cookt or similar)
 - Order weekly. Keep 5-6 in the freezer or fridge so there's always one available.
 - Choose ones with **20 g+ protein and some beans, lentils, veg or whole grains**.
