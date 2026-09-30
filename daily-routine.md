@@ -112,3 +112,20 @@ Make it easy to start: gym bag by the door, same time each day, and a rule of "j
 - Did I take a real lunch on admin days?
 - Did I have at least one fully-off block?
 - If two or more answers are "no", drop a habit back to its floor for a week. Don't add more.
+
+---
+
+## Easy food wins
+
+**Ready meals (Cookt).** Keep a stock of these for teaching days and any day you have no energy to cook. Rules of thumb:
+- Order weekly, so Tuesday and Thursday lunches, plus one backup dinner, are already sorted.
+- Pick meals with a decent amount of protein. Check the label for the numbers.
+- Before ordering, check that the range fits your halal and vegan/vegetarian needs. Reviews suggest COOK-style ranges include vegan options, but confirm on the site. Don't assume halal certification.
+
+**Protein powder (vegan, strawberry cream, bulk).** Candidates to compare on price per serving, protein per serving and ingredient list:
+- Sunday Creamy Protein, Natural Strawberry (fava, pea, sunflower; about 77% protein; 1 kg tub)
+- nutri+ Vegan 3K, Strawberry-Cream (soy, pea, sunflower; about 24 g protein per serving; 1 kg tub)
+- Orgain Organic Plant Based, Strawberries & Cream (about 21 g protein; pea, brown rice, chia; USDA Organic)
+- PhD Strawberry Cream Diet Plant Protein (about 20 g protein, with added extras)
+
+How to use it: one scoop in the morning after Fajr (or after the gym on admin days) so protein is sorted before work.
