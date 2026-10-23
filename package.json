@@ -1,0 +1,12 @@
+{
+  "name": "printflow-connect",
+  "version": "1.0.0",
+  "description": "Job board for a print shop, wired into QuickBooks, Gmail and Stripe",
+  "type": "module",
+  "private": true,
+  "engines": { "node": ">=22.5" },
+  "scripts": {
+    "start": "node --disable-warning=ExperimentalWarning server/index.js",
+    "test": "node --disable-warning=ExperimentalWarning --test test/"
+  }
+}
