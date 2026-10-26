@@ -55,7 +55,7 @@ route('POST', '/api/login', async ({ req, res, b }) => {
   if (!u || !timingSafeEqual(calc, Buffer.from(u.hash, 'hex'))) throw err(401, 'Wrong username or password');
   const token = randomBytes(32).toString('hex');
   db.prepare('INSERT INTO sessions VALUES(?,?,?)').run(token, u.id, Date.now());
-  res.setHeader('Set-Cookie', `pf_session=${token}; HttpOnly; SameSite=Strict; Path=/; Max-Age=${SESSION_MS / 1000}`);
+  res.setHeader('Set-Cookie', `pf_session=${token}; HttpOnly; SameSite=Strict;${process.env.NODE_ENV === 'production' ? ' Secure;' : ''} Path=/; Max-Age=${SESSION_MS / 1000}`);
   return { username: u.username };
 }, true);
 route('POST', '/api/logout', ({ req, res }) => {

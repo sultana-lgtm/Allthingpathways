@@ -1,9 +1,10 @@
 import { DatabaseSync } from 'node:sqlite';
 import { mkdirSync } from 'node:fs';
+import { dirname } from 'node:path';
 import { randomBytes, scryptSync } from 'node:crypto';
 
 const file = process.env.DB_FILE || 'data/printflow.db';
-if (file !== ':memory:') mkdirSync('data', { recursive: true });
+if (file !== ':memory:') mkdirSync(dirname(file), { recursive: true });
 export const db = new DatabaseSync(file);
 
 db.exec(`

@@ -22,3 +22,6 @@ With no API keys it runs in **demo mode**: a local QuickBooks sandbox, sample em
 
 ## Status
 The live QuickBooks, Gmail and Stripe adapters follow each vendor's REST API but have not been run against real accounts. The card-reader flow and the card-payments matching screen are marked beta.
+
+## Deploying
+A `Dockerfile` and `render.yaml` are included. The app stores everything in one SQLite file (`DB_FILE`, default `/data/printflow.db` in the container), so the host must give it a **persistent disk** mounted at `/data`. Set `ADMIN_PASSWORD` before first start. Serve over HTTPS only (the session cookie is `Secure` when `NODE_ENV=production`).
