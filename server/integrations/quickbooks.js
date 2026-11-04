@@ -1,34 +1,66 @@
 // QuickBooks Online adapter. Uses the live API when QBO_* env vars are set,
 // otherwise a local sandbox (stored in SQLite) so the whole app works offline.
-import { db } from '../db.js';
+import { db, getKv, setKv } from '../db.js';
 import { TAX_RATE } from '../util.js';
 
-const live = !!(process.env.QBO_REALM_ID && process.env.QBO_CLIENT_ID && process.env.QBO_CLIENT_SECRET && process.env.QBO_REFRESH_TOKEN);
-export const qbMode = live ? 'live' : 'demo';
+// Connection details: set by the in-app "Connect QuickBooks" flow (stored in the database,
+// because Intuit rotates the refresh token on every refresh) or, as a fallback, by QBO_* env vars.
+const clientId = () => process.env.QBO_CLIENT_ID;
+const clientSecret = () => process.env.QBO_CLIENT_SECRET;
+const realmId = () => getKv('qbo_realm') || process.env.QBO_REALM_ID;
+const refreshTok = () => getKv('qbo_refresh') || process.env.QBO_REFRESH_TOKEN;
+export const appConfigured = () => !!(clientId() && clientSecret());
+const isLive = () => !!(appConfigured() && realmId() && refreshTok());
+export const qbMode = () => (isLive() ? 'live' : 'demo');
+const sandbox = () => process.env.QBO_SANDBOX === '1';
 
 let token = { value: null, exp: 0 };
-let refreshToken = process.env.QBO_REFRESH_TOKEN;
+
+const basic = () => 'Basic ' + Buffer.from(`${clientId()}:${clientSecret()}`).toString('base64');
+async function tokenRequest(params) {
+  const r = await fetch('https://oauth.platform.intuit.com/oauth2/v1/tokens/bearer', {
+    method: 'POST', headers: { Authorization: basic(), 'Content-Type': 'application/x-www-form-urlencoded', Accept: 'application/json' },
+    body: new URLSearchParams(params) });
+  if (!r.ok) throw new Error(`QuickBooks auth failed (${r.status}). Try reconnecting QuickBooks in Settings.`);
+  return r.json();
+}
 
 async function accessToken() {
   if (token.value && Date.now() < token.exp) return token.value;
-  const r = await fetch('https://oauth.platform.intuit.com/oauth2/v1/tokens/bearer', {
-    method: 'POST',
-    headers: {
-      Authorization: 'Basic ' + Buffer.from(`${process.env.QBO_CLIENT_ID}:${process.env.QBO_CLIENT_SECRET}`).toString('base64'),
-      'Content-Type': 'application/x-www-form-urlencoded', Accept: 'application/json',
-    },
-    body: new URLSearchParams({ grant_type: 'refresh_token', refresh_token: refreshToken }),
-  });
-  if (!r.ok) throw new Error(`QuickBooks auth failed (${r.status})`);
-  const j = await r.json();
-  refreshToken = j.refresh_token || refreshToken; // Intuit rotates refresh tokens
+  const j = await tokenRequest({ grant_type: 'refresh_token', refresh_token: refreshTok() });
+  if (j.refresh_token) setKv('qbo_refresh', j.refresh_token);
   token = { value: j.access_token, exp: Date.now() + (j.expires_in - 60) * 1000 };
   return token.value;
 }
 
+export function authorizeUrl(redirectUri, state) {
+  if (!appConfigured()) throw new Error('Set QBO_CLIENT_ID and QBO_CLIENT_SECRET first');
+  return 'https://appcenter.intuit.com/connect/oauth2?' + new URLSearchParams({
+    client_id: clientId(), response_type: 'code', scope: 'com.intuit.quickbooks.accounting', redirect_uri: redirectUri, state });
+}
+
+/** Finish the Intuit sign-in: swap the code for tokens, remember them, and detach orders linked to demo invoices. */
+export async function completeConnect(code, realm, redirectUri) {
+  const j = await tokenRequest({ grant_type: 'authorization_code', code, redirect_uri: redirectUri });
+  setKv('qbo_realm', realm); setKv('qbo_refresh', j.refresh_token);
+  token = { value: j.access_token, exp: Date.now() + (j.expires_in - 60) * 1000 };
+  db.prepare(`UPDATE orders SET qb_invoice_id=NULL, qb_balance=NULL, qb_error=NULL, qb_synced_at=NULL
+    WHERE qb_invoice_id IN (SELECT id FROM qb_mock_invoices)`).run();
+}
+
+export function disconnect() {
+  db.prepare("DELETE FROM kv WHERE k IN ('qbo_realm','qbo_refresh')").run();
+  token = { value: null, exp: 0 };
+}
+
+export async function companyName() {
+  const j = await qbo(`companyinfo/${realmId()}?minorversion=70`);
+  return j.CompanyInfo?.CompanyName || '';
+}
+
 async function qbo(path, { method = 'GET', body } = {}) {
-  const base = process.env.QBO_SANDBOX === '1' ? 'https://sandbox-quickbooks.api.intuit.com' : 'https://quickbooks.api.intuit.com';
-  const r = await fetch(`${base}/v3/company/${process.env.QBO_REALM_ID}/${path}`, {
+  const base = sandbox() ? 'https://sandbox-quickbooks.api.intuit.com' : 'https://quickbooks.api.intuit.com';
+  const r = await fetch(`${base}/v3/company/${realmId()}/${path}`, {
     method, headers: { Authorization: `Bearer ${await accessToken()}`, Accept: 'application/json', 'Content-Type': 'application/json' },
     body: body ? JSON.stringify(body) : undefined,
   });
@@ -63,7 +95,7 @@ function liveLines(items, tax) {
 let mockSeq = 1100;
 
 export async function createInvoice(order, items) {
-  if (live) {
+  if (isLive()) {
     const j = await qbo('invoice?minorversion=70', { method: 'POST', body: {
       CustomerRef: await customerRef(order.customer_name, order.customer_email),
       DocNumber: order.number, DueDate: order.due_date || undefined, Line: liveLines(items, order.tax) } });
@@ -76,7 +108,7 @@ export async function createInvoice(order, items) {
 }
 
 export async function updateInvoice(id, order, items) {
-  if (live) {
+  if (isLive()) {
     const cur = (await qbo(`invoice/${id}?minorversion=70`)).Invoice;
     const j = await qbo('invoice?minorversion=70', { method: 'POST', body: {
       Id: id, SyncToken: cur.SyncToken, sparse: true, Line: liveLines(items, order.tax) } });
@@ -91,7 +123,7 @@ export async function updateInvoice(id, order, items) {
 }
 
 export async function getInvoice(id) {
-  if (live) {
+  if (isLive()) {
     const j = (await qbo(`invoice/${id}?minorversion=70`)).Invoice;
     return { id, balance: cents(j.Balance), total: cents(j.TotalAmt) };
   }
@@ -100,7 +132,7 @@ export async function getInvoice(id) {
 }
 
 export async function listInvoices() {
-  if (live) {
+  if (isLive()) {
     const out = []; let start = 1;
     for (;;) {
       const r = await query(`select * from Invoice orderby TxnDate desc startposition ${start} maxresults 100`);
@@ -121,12 +153,12 @@ export async function listInvoices() {
 
 /** Demo only: simulate the customer paying the invoice inside QuickBooks. */
 export function mockPay(id) {
-  if (live) throw new Error('Only available in demo mode');
+  if (isLive()) throw new Error('Only available in demo mode');
   db.prepare('UPDATE qb_mock_invoices SET balance=0 WHERE id=?').run(id);
 }
 
 export function seedMock() {
-  if (live || db.prepare('SELECT COUNT(*) c FROM qb_mock_invoices').get().c) return;
+  if (isLive() || db.prepare('SELECT COUNT(*) c FROM qb_mock_invoices').get().c) return;
   const ins = db.prepare('INSERT INTO qb_mock_invoices VALUES(?,?,?,?,?,?,?)');
   const mk = (id, customer, email, date, lines, paid) => {
     const sub = lines.reduce((s, l) => s + Math.round(l.qty * l.rate), 0);

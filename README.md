@@ -28,3 +28,8 @@ A `Dockerfile` and `render.yaml` are included. The app stores everything in one 
 
 ## Forgot the password
 Set `RESET_ADMIN_PASSWORD` to a new password (in Render: service, Environment) and restart. The `admin` account (or `ADMIN_USER`) gets that password and all sessions are signed out. Remove the variable afterwards, or the password resets on every restart.
+
+## Going live
+**QuickBooks:** create an app at developer.intuit.com (production keys need Intuit's app review; sandbox keys work immediately with `QBO_SANDBOX=1`). Add `https://YOUR-SITE/api/quickbooks/callback` as a Redirect URI in the app (exact match), set `QBO_CLIENT_ID` and `QBO_CLIENT_SECRET` on the host, restart, then open **Settings, Connect QuickBooks**. Tokens are kept in the database and refreshed automatically.
+
+**Stripe:** set `STRIPE_SECRET_KEY` (start with a `sk_test_` key) and `STRIPE_READER_ID`; **Settings, Test Stripe connection** lists your readers so you can copy the ID.
