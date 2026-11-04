@@ -125,6 +125,11 @@ async function viewNew() {
 }
 
 async function viewOrder(id) {
+  if (location.hash.includes('stripe=return')) {
+    history.replaceState(null, '', `#/order/${id}`);
+    const r = await api(`/orders/${id}/checkout-status`).catch(() => ({ paid: false }));
+    toast(r.paid ? 'Payment received and sent to QuickBooks' : 'Payment not completed yet', !r.paid);
+  }
   const o = await api('/orders/' + id);
   prices = await api('/prices');
   const paidAmt = o.payments.reduce((s, p) => s + p.amount, 0);
@@ -163,10 +168,20 @@ async function viewOrder(id) {
   on(main, '#qbchk', 'click', async () => { const r = await api('/quickbooks/sync', { method: 'POST' }); toast(`Checked ${r.checked}, marked ${r.flipped} paid`); reload(); });
 
   $('#pay', main).innerHTML = html`<p>Paid <b>${money(paidAmt)}</b> of <b>${money(o.total)}</b></p>
-    ${raw(o.payments.length ? html`<table>${raw(o.payments.map((p) => html`<tr><td>${p.created_at.slice(0, 10)}</td><td>${p.method}${p.last4 ? ' ••' + p.last4 : ''}</td><td class="num">${money(p.amount)}</td></tr>`.s).join(''))}</table>`.s : '<p class="muted">No payments recorded.</p>')}
+    ${raw(o.payments.length ? html`<table>${raw(o.payments.map((p) => html`<tr><td>${p.created_at.slice(0, 10)}</td><td>${p.method}${p.last4 ? ' ••' + p.last4 : ''}</td><td class="num">${money(p.amount)}</td><td>${p.method === 'quickbooks' ? '' : p.qb_payment_id ? raw('<span class="pill paid">In QB</span>') : raw(html`<span class="pill warn" title="${p.qb_error || ''}">${o.qb_invoice_id ? 'QB pending' : 'No invoice'}</span>`.s)}</td></tr>`.s).join(''))}</table>`.s : '<p class="muted">No payments recorded.</p>')}
     ${o.paid ? '' : raw(html`<div class="row" style="margin-top:10px"><select id="pm" style="width:90px"><option>cash</option><option>check</option><option>other</option></select>
       <input id="pa" type="number" step="0.01" style="width:110px" value="${dollars(o.total - paidAmt)}"><button id="addpay">Record payment</button></div>
-      <div class="row" style="margin-top:10px"><button id="card">💳 Take card payment (reader)</button><span class="pill warn">beta</span></div><div id="cardmsg" class="muted" style="margin-top:6px"></div>`.s)}`.s;
+      <div class="row" style="margin-top:10px"><button class="primary" id="pay-online">💳 Pay with card</button>
+        ${me.modes.stripe === 'live' ? raw('<button id="card">Use card reader</button><span class="pill warn">reader: beta</span>') : ''}</div><div id="cardmsg" class="muted" style="margin-top:6px"></div>`.s)}`.s;
+  on(main, '#pay-online', 'click', async () => {
+    const c = await api(`/orders/${id}/checkout`, { method: 'POST' });
+    if (c.demo) {
+      $('#cardmsg', main).innerHTML = html`Demo (Stripe not connected): pay ${money(c.amount)}? <button id="tap2" class="small">Simulate successful payment</button>`.s;
+      $('#tap2', main).onclick = guard(async () => { await api(`/orders/${id}/terminal-demo-complete`, { method: 'POST', body: { pi: c.id, amount: c.amount } }); toast('Payment recorded (demo)'); reload(); });
+      return;
+    }
+    location.href = c.url; // Stripe's secure payment page; returns to this order afterwards
+  });
   on(main, '#addpay', 'click', async () => { await api(`/orders/${id}/payments`, { method: 'POST', body: { method: $('#pm', main).value, amount: Math.round(Number($('#pa', main).value) * 100) } }); toast('Payment recorded'); reload(); });
   on(main, '#card', 'click', async () => {
     const t = await api(`/orders/${id}/terminal`, { method: 'POST' });
@@ -279,7 +294,8 @@ async function viewSettings() {
       : !gl.app_configured ? '<p><span class="pill warn">Not set up</span></p><p>Add <b>GMAIL_CLIENT_ID</b> and <b>GMAIL_CLIENT_SECRET</b> (from a Google Cloud OAuth client) in the host\'s environment settings, restart, then come back here.</p>'
       : '<p><span class="pill warn">Demo mode</span> Using four sample emails. Connect your shop inbox to read real mail.</p><p class="muted">Unconfirmed sample emails are removed when you connect. The app only ever reads mail; it never sends or deletes.</p><div class="row"><a class="btn primary" href="/api/gmail/connect">Connect Gmail</a></div>')}</div>
     <div class="card"><h2>Stripe card reader</h2><p>${me.modes.stripe === 'live' ? raw('<span class="pill paid">Configured</span>') : raw('<span class="pill warn">Demo mode</span>')}
-      <span class="muted"> Needs <b>STRIPE_SECRET_KEY</b> and <b>STRIPE_READER_ID</b> in the host's environment settings.</span></p>
+      <span class="muted"> Card reader needs <b>STRIPE_SECRET_KEY</b> and <b>STRIPE_READER_ID</b>. The in-app <b>Pay with card</b> button needs only <b>STRIPE_SECRET_KEY</b>${me.modes.stripe_online === 'live' ? ' (set)' : ' (not set: demo)'}.</span></p>
+      <p class="muted">So payments reach QuickBooks even if nobody is watching the screen, add a Stripe webhook to <code>${location.origin}/api/stripe/webhook</code> for the event <b>payment_intent.succeeded</b>, and set its signing secret as <b>STRIPE_WEBHOOK_SECRET</b>.</p>
       <div class="row"><button id="st">Test Stripe connection</button></div><div id="stout" style="margin-top:10px"></div></div>`);
   on(main, '#qbdis', 'click', async () => { if (confirm('Disconnect QuickBooks? The app goes back to demo mode.')) { await api('/quickbooks/disconnect', { method: 'POST' }); route(); } });
   on(main, '#gldis', 'click', async () => { if (confirm('Disconnect Gmail? The app goes back to demo mode.')) { await api('/gmail/disconnect', { method: 'POST' }); route(); } });
