@@ -35,7 +35,7 @@ async function shell(active, content) {
   let counts = { order: 0, inquiry: 0, unclassified: 0 };
   try { counts = await api('/emails/counts'); } catch { /* ignore */ }
   const nav = [['orders', 'Orders'], ['new', 'New order'], ['review', 'Review queue', counts.order], ['inquiries', 'Inquiries', counts.inquiry],
-    ['unclassified', 'Unclassified', counts.unclassified], ['reconcile', 'Reconcile'], ['cards', 'Card payments'], ['prices', 'Prices']];
+    ['unclassified', 'Unclassified', counts.unclassified], ['reconcile', 'Reconcile'], ['cards', 'Card payments'], ['prices', 'Prices'], ['settings', 'Settings']];
   const m = me.modes;
   $app.innerHTML = html`<div class="layout"><nav class="side">
     <div class="brand">PrintFlow Connect<small>Orders · QuickBooks · Stripe</small></div>
@@ -261,6 +261,35 @@ const priceRow = (p, isNew) => html`<tr data-id="${p.id}"><td><input name="name"
   <td><input name="rate" type="number" step="0.01" min="0" value="${dollars(p.rate)}"></td><td><select name="source"><option ${p.source === 'in-house' ? raw('selected') : ''}>in-house</option><option ${p.source === 'outsourced' ? raw('selected') : ''}>outsourced</option></select></td>
   <td class="row"><button class="small save">${isNew ? 'Add' : 'Save'}</button>${isNew ? '' : raw('<button class="small danger del">Delete</button>')}</td></tr>`.s;
 
+async function viewSettings() {
+  const flash = new URLSearchParams(location.hash.split('?')[1] || '');
+  if (flash.get('ok')) toast(flash.get('ok')); if (flash.get('error')) toast(flash.get('error'), true);
+  history.replaceState(null, '', '#/settings');
+  const [qb, gl] = await Promise.all([api('/quickbooks/status'), api('/gmail/status')]);
+  me = await api('/me');
+  const main = await shell('settings', html`<div class="top"><h1>Settings</h1></div>
+    <div class="card"><h2>QuickBooks</h2>${raw(qb.mode === 'live'
+      ? html`<p><span class="pill paid">Connected</span> ${qb.company ? raw(html`to <b>${qb.company}</b>`.s) : ''}</p>${qb.error ? raw(html`<div class="err">${qb.error}</div>`.s) : ''}
+        <p class="muted">New orders create real invoices in this company. Paid status is checked every 15 minutes.</p><div class="row"><button id="qbdis" class="danger">Disconnect</button></div>`.s
+      : !qb.app_configured ? '<p><span class="pill warn">Not set up</span></p><p>Add <b>QBO_CLIENT_ID</b> and <b>QBO_CLIENT_SECRET</b> (from your Intuit developer app) in the host\'s environment settings, restart, then come back here.</p>'
+      : `<p><span class="pill warn">Demo mode</span> Using a fake QuickBooks. Connect your real company to switch over.</p><p class="muted">Orders linked to demo invoices are unlinked on connect and will show in Reconcile so you can create real invoices for them.</p><div class="row"><a class="btn primary" href="/api/quickbooks/connect">Connect QuickBooks</a></div>`)}</div>
+    <div class="card"><h2>Gmail</h2>${raw(gl.mode === 'live'
+      ? html`<p><span class="pill paid">Connected</span> ${gl.account ? raw(html`to <b>${gl.account}</b>`.s) : ''}</p>${gl.error ? raw(html`<div class="err">${gl.error}</div>`.s) : ''}
+        <p class="muted">New mail is read (read-only) every 2 minutes and sorted into the Review queue, Inquiries and Unclassified.</p><div class="row"><button id="gldis" class="danger">Disconnect</button></div>`.s
+      : !gl.app_configured ? '<p><span class="pill warn">Not set up</span></p><p>Add <b>GMAIL_CLIENT_ID</b> and <b>GMAIL_CLIENT_SECRET</b> (from a Google Cloud OAuth client) in the host\'s environment settings, restart, then come back here.</p>'
+      : '<p><span class="pill warn">Demo mode</span> Using four sample emails. Connect your shop inbox to read real mail.</p><p class="muted">Unconfirmed sample emails are removed when you connect. The app only ever reads mail; it never sends or deletes.</p><div class="row"><a class="btn primary" href="/api/gmail/connect">Connect Gmail</a></div>')}</div>
+    <div class="card"><h2>Stripe card reader</h2><p>${me.modes.stripe === 'live' ? raw('<span class="pill paid">Configured</span>') : raw('<span class="pill warn">Demo mode</span>')}
+      <span class="muted"> Needs <b>STRIPE_SECRET_KEY</b> and <b>STRIPE_READER_ID</b> in the host's environment settings.</span></p>
+      <div class="row"><button id="st">Test Stripe connection</button></div><div id="stout" style="margin-top:10px"></div></div>`);
+  on(main, '#qbdis', 'click', async () => { if (confirm('Disconnect QuickBooks? The app goes back to demo mode.')) { await api('/quickbooks/disconnect', { method: 'POST' }); route(); } });
+  on(main, '#gldis', 'click', async () => { if (confirm('Disconnect Gmail? The app goes back to demo mode.')) { await api('/gmail/disconnect', { method: 'POST' }); route(); } });
+  on(main, '#st', 'click', async () => {
+    const r = await api('/stripe/test');
+    $('#stout', main).innerHTML = html`<p>Key works (${r.test_mode ? 'TEST mode - no real charges' : 'LIVE mode'}). Configured reader: <b>${r.configured_reader || 'none'}</b></p>
+      ${raw(r.readers.length ? html`<table><tr><th>Reader ID</th><th>Label</th><th>Type</th><th>Status</th></tr>${raw(r.readers.map((x) => html`<tr><td><code>${x.id}</code></td><td>${x.label}</td><td>${x.type}</td><td>${x.status}</td></tr>`.s).join(''))}</table>`.s : '<p class="muted">No readers registered in this Stripe account yet.</p>')}`.s;
+  });
+}
+
 // ---------- login & router ----------
 function viewLogin() {
   $app.innerHTML = html`<form class="login" id="lf"><h1>PrintFlow Connect</h1><div class="muted">Staff sign in</div><div class="grid">
@@ -274,7 +303,7 @@ function viewLogin() {
 }
 
 async function route() {
-  const [, view = 'orders', arg] = location.hash.split('/');
+  const [, view = 'orders', arg] = location.hash.split('?')[0].split('/');
   try {
     if (view === 'orders') return await viewOrders();
     if (view === 'new') return await viewNew();
@@ -285,6 +314,7 @@ async function route() {
     if (view === 'reconcile') return await viewReconcile();
     if (view === 'cards') return await viewCards();
     if (view === 'prices') return await viewPrices();
+    if (view === 'settings') return await viewSettings();
     go('#/orders');
   } catch (e) { toast(e.message, true); }
 }

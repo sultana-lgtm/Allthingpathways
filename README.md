@@ -25,3 +25,13 @@ The live QuickBooks, Gmail and Stripe adapters follow each vendor's REST API but
 
 ## Deploying
 A `Dockerfile` and `render.yaml` are included. The app stores everything in one SQLite file (`DB_FILE`, default `/data/printflow.db` in the container), so the host must give it a **persistent disk** mounted at `/data`. Set `ADMIN_PASSWORD` before first start. Serve over HTTPS only (the session cookie is `Secure` when `NODE_ENV=production`).
+
+## Forgot the password
+Set `RESET_ADMIN_PASSWORD` to a new password (in Render: service, Environment) and restart. The `admin` account (or `ADMIN_USER`) gets that password and all sessions are signed out. Remove the variable afterwards, or the password resets on every restart.
+
+## Going live
+**QuickBooks:** create an app at developer.intuit.com (production keys need Intuit's app review; sandbox keys work immediately with `QBO_SANDBOX=1`). Add `https://YOUR-SITE/api/quickbooks/callback` as a Redirect URI in the app (exact match), set `QBO_CLIENT_ID` and `QBO_CLIENT_SECRET` on the host, restart, then open **Settings, Connect QuickBooks**. Tokens are kept in the database and refreshed automatically.
+
+**Stripe:** set `STRIPE_SECRET_KEY` (start with a `sk_test_` key) and `STRIPE_READER_ID`; **Settings, Test Stripe connection** lists your readers so you can copy the ID.
+
+**Gmail:** in Google Cloud Console, create a project, enable the Gmail API, configure the OAuth consent screen (add your shop address as a test user), and create an OAuth client of type *Web application*. Add `https://YOUR-SITE/api/gmail/callback` as an authorized redirect URI, set `GMAIL_CLIENT_ID` and `GMAIL_CLIENT_SECRET` on the host, restart, then **Settings, Connect Gmail**. Read-only access. While the consent screen is in "Testing", Google expires the connection after 7 days; publish it to avoid that.

@@ -36,3 +36,11 @@ export async function recentCharges() {
     id: p.id, amount: p.amount_received, last4: p.latest_charge?.payment_method_details?.card_present?.last4 || '',
     created: new Date(p.created * 1000).toISOString(), order: p.metadata?.order || null }));
 }
+
+/** Settings-page check: confirms the key works and lists readers so the right STRIPE_READER_ID can be copied. */
+export async function testConnection() {
+  if (!key) throw new Error('STRIPE_SECRET_KEY is not set');
+  const j = await stripe('terminal/readers?limit=20', null, 'GET');
+  return { test_mode: key.startsWith('sk_test_') || key.startsWith('rk_test_'), configured_reader: reader || null,
+    readers: j.data.map((r) => ({ id: r.id, label: r.label, status: r.status, type: r.device_type })) };
+}

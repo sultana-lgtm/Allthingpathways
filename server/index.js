@@ -3,11 +3,12 @@ import { readFile } from 'node:fs/promises';
 import { extname, join, normalize } from 'node:path';
 import { randomBytes, scryptSync, timingSafeEqual } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
-import { db, seed } from './db.js';
+import { db, seed, getKv, setKv } from './db.js';
 import { invoicePdf } from './util.js';
 import * as O from './orders.js';
 import * as qb from './integrations/quickbooks.js';
-import { checkEmail, gmailMode } from './integrations/gmail.js';
+import * as gm from './integrations/gmail.js';
+const { checkEmail } = gm;
 import * as stripe from './integrations/stripe.js';
 import { summarize } from './integrations/summary.js';
 
@@ -65,7 +66,7 @@ route('POST', '/api/logout', ({ req, res }) => {
 }, true);
 route('GET', '/api/me', ({ user }) => (user ? { username: user.username, modes: modes() } : (() => { throw err(401, 'Not signed in'); })()), true);
 
-const modes = () => ({ quickbooks: qb.qbMode, gmail: gmailMode, stripe: stripe.stripeMode, ai: !!process.env.ANTHROPIC_API_KEY });
+const modes = () => ({ quickbooks: qb.qbMode(), gmail: gm.gmailMode(), stripe: stripe.stripeMode, ai: !!process.env.ANTHROPIC_API_KEY });
 
 // Orders
 route('GET', '/api/orders', ({ url }) => {
@@ -144,6 +145,56 @@ route('GET', '/api/orders/:id/invoice.pdf', ({ params, res }) => {
 });
 
 // QuickBooks
+const origin = (req) => process.env.PUBLIC_URL || `${req.headers['x-forwarded-proto'] || 'http'}://${req.headers['x-forwarded-host'] || req.headers.host}`;
+const redirectUri = (req) => process.env.QBO_REDIRECT_URI || `${origin(req)}/api/quickbooks/callback`;
+const page = (res, status, msg) => { res.writeHead(302, { Location: `/#/settings?${status}=${encodeURIComponent(msg)}` }); res.end(); res.raw = { handled: true }; };
+
+route('GET', '/api/quickbooks/status', async () => {
+  const mode = qb.qbMode();
+  let company = '', error = '';
+  if (mode === 'live') { try { company = await qb.companyName(); } catch (e) { error = e.message; } }
+  return { mode, app_configured: qb.appConfigured(), company, error };
+});
+route('GET', '/api/quickbooks/connect', ({ req, res }) => { // browser navigation; user is signed in
+  const state = randomBytes(16).toString('hex');
+  setKv('qbo_state', `${state}.${Date.now()}`);
+  res.writeHead(302, { Location: qb.authorizeUrl(redirectUri(req), state) }); res.end(); res.raw = { handled: true };
+});
+// Intuit redirects here cross-site, so the strict session cookie is not sent: authenticate with the one-time state instead.
+route('GET', '/api/quickbooks/callback', async ({ req, res, url }) => {
+  const [st, at] = (getKv('qbo_state') || '.').split('.');
+  setKv('qbo_state', '');
+  const q = url.searchParams;
+  if (!st || q.get('state') !== st || Date.now() - Number(at) > 10 * 60e3) return page(res, 'error', 'Connection link expired. Click Connect QuickBooks again.');
+  if (q.get('error') || !q.get('code') || !q.get('realmId')) return page(res, 'error', 'QuickBooks connection was cancelled.');
+  try { await qb.completeConnect(q.get('code'), q.get('realmId'), redirectUri(req)); }
+  catch (e) { return page(res, 'error', e.message); }
+  page(res, 'ok', 'QuickBooks connected');
+}, true);
+route('POST', '/api/quickbooks/disconnect', () => { qb.disconnect(); return { ok: true }; });
+route('GET', '/api/stripe/test', async () => stripe.testConnection().catch((e) => { throw err(400, e.message); }));
+route('GET', '/api/gmail/status', async () => {
+  const mode = gm.gmailMode();
+  let account = '', error = '';
+  if (mode === 'live') { try { account = await gm.accountEmail(); } catch (e) { error = e.message; } }
+  return { mode, app_configured: gm.appConfigured(), account, error };
+});
+route('GET', '/api/gmail/connect', ({ req, res }) => {
+  const state = randomBytes(16).toString('hex');
+  setKv('gmail_state', `${state}.${Date.now()}`);
+  res.writeHead(302, { Location: gm.authorizeUrl(process.env.GMAIL_REDIRECT_URI || `${origin(req)}/api/gmail/callback`, state) }); res.end(); res.raw = { handled: true };
+});
+route('GET', '/api/gmail/callback', async ({ req, res, url }) => {
+  const [st, at] = (getKv('gmail_state') || '.').split('.');
+  setKv('gmail_state', '');
+  const q = url.searchParams;
+  if (!st || q.get('state') !== st || Date.now() - Number(at) > 10 * 60e3) return page(res, 'error', 'Connection link expired. Click Connect Gmail again.');
+  if (q.get('error') || !q.get('code')) return page(res, 'error', 'Gmail connection was cancelled.');
+  try { await gm.completeConnect(q.get('code'), process.env.GMAIL_REDIRECT_URI || `${origin(req)}/api/gmail/callback`); }
+  catch (e) { return page(res, 'error', e.message); }
+  page(res, 'ok', 'Gmail connected');
+}, true);
+route('POST', '/api/gmail/disconnect', () => { gm.disconnect(); return { ok: true }; });
 route('POST', '/api/quickbooks/import', async () => O.importFromQuickBooks());
 route('POST', '/api/quickbooks/sync', async () => O.syncPaidFromQuickBooks());
 
@@ -206,6 +257,7 @@ const server = createServer(async (req, res) => {
         if (!user && !open) throw err(401, 'Not signed in');
         if (m !== 'GET' && req.headers['sec-fetch-site'] === 'cross-site') throw err(403, 'Cross-site request blocked');
         const out = await fn({ req, res, url, user, params: hit.groups || {}, b: m === 'GET' ? {} : await body(req) });
+        if (res.raw?.handled) return;
         if (res.raw) return send(200, res.raw.data, res.raw.type, { 'Content-Disposition': `inline; filename="${res.raw.name}"` });
         return send(200, out ?? { ok: true });
       }
@@ -222,9 +274,9 @@ const server = createServer(async (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log(`PrintFlow Connect running at http://localhost:${PORT}\n  QuickBooks: ${qb.qbMode} | Gmail: ${gmailMode} | Stripe Terminal: ${stripe.stripeMode}`));
+server.listen(PORT, () => console.log(`PrintFlow Connect running at http://localhost:${PORT}\n  QuickBooks: ${qb.qbMode()} | Gmail: ${gm.gmailMode()} | Stripe Terminal: ${stripe.stripeMode}`));
 
 // Background jobs
 setInterval(() => O.syncPaidFromQuickBooks().catch((e) => console.error('QB paid-sync failed:', e.message)), 15 * 60e3).unref();
-if (gmailMode === 'live') setInterval(() => checkEmail().catch((e) => console.error('Gmail check failed:', e.message)), 2 * 60e3).unref();
+setInterval(() => gm.gmailMode() === 'live' && checkEmail().catch((e) => console.error('Gmail check failed:', e.message)), 2 * 60e3).unref();
 db.prepare('DELETE FROM sessions WHERE created_at < ?').run(Date.now() - SESSION_MS);

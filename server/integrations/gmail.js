@@ -1,10 +1,15 @@
 // Gmail adapter. Live mode reads the shop inbox via the Gmail REST API;
 // demo mode releases a handful of sample emails so the review flow can be tried.
-import { db } from '../db.js';
+import { db, getKv, setKv } from '../db.js';
 import { classify } from './parser.js';
 
-const live = !!(process.env.GMAIL_CLIENT_ID && process.env.GMAIL_CLIENT_SECRET && process.env.GMAIL_REFRESH_TOKEN);
-export const gmailMode = live ? 'live' : 'demo';
+// Connected via the in-app "Connect Gmail" flow (token kept in the database) or GMAIL_* env vars.
+const clientId = () => process.env.GMAIL_CLIENT_ID;
+const clientSecret = () => process.env.GMAIL_CLIENT_SECRET;
+const refreshTok = () => getKv('gmail_refresh') || process.env.GMAIL_REFRESH_TOKEN;
+export const appConfigured = () => !!(clientId() && clientSecret());
+const isLive = () => !!(appConfigured() && refreshTok());
+export const gmailMode = () => (isLive() ? 'live' : 'demo');
 
 const SAMPLES = [
   { id: 'demo-1', from: 'Dana Whitfield <dana@whitfieldrealty.example>', subject: 'Order: open house materials',
@@ -23,17 +28,37 @@ const parseFrom = (f) => {
 };
 
 let tok = { v: null, exp: 0 };
-async function gtoken() {
-  if (tok.v && Date.now() < tok.exp) return tok.v;
+async function tokenRequest(params) {
   const r = await fetch('https://oauth2.googleapis.com/token', { method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({ client_id: process.env.GMAIL_CLIENT_ID, client_secret: process.env.GMAIL_CLIENT_SECRET,
-      refresh_token: process.env.GMAIL_REFRESH_TOKEN, grant_type: 'refresh_token' }) });
-  if (!r.ok) throw new Error(`Gmail auth failed (${r.status})`);
-  const j = await r.json();
+    body: new URLSearchParams({ client_id: clientId(), client_secret: clientSecret(), ...params }) });
+  if (!r.ok) throw new Error(`Gmail auth failed (${r.status}). Try reconnecting Gmail in Settings.`);
+  return r.json();
+}
+async function gtoken() {
+  if (tok.v && Date.now() < tok.exp) return tok.v;
+  const j = await tokenRequest({ refresh_token: refreshTok(), grant_type: 'refresh_token' });
   tok = { v: j.access_token, exp: Date.now() + (j.expires_in - 60) * 1000 };
   return tok.v;
 }
+
+export function authorizeUrl(redirectUri, state) {
+  if (!appConfigured()) throw new Error('Set GMAIL_CLIENT_ID and GMAIL_CLIENT_SECRET first');
+  return 'https://accounts.google.com/o/oauth2/v2/auth?' + new URLSearchParams({
+    client_id: clientId(), redirect_uri: redirectUri, response_type: 'code', state,
+    scope: 'https://www.googleapis.com/auth/gmail.readonly', access_type: 'offline', prompt: 'consent' });
+}
+
+/** Finish Google sign-in; drop unconfirmed demo emails so the queue only holds real mail. */
+export async function completeConnect(code, redirectUri) {
+  const j = await tokenRequest({ code, redirect_uri: redirectUri, grant_type: 'authorization_code' });
+  if (!j.refresh_token) throw new Error('Google did not return a refresh token. Remove the app at myaccount.google.com/permissions and connect again.');
+  setKv('gmail_refresh', j.refresh_token);
+  tok = { v: j.access_token, exp: Date.now() + (j.expires_in - 60) * 1000 };
+  db.prepare("DELETE FROM emails WHERE gmail_id LIKE 'demo-%' AND order_id IS NULL").run();
+}
+export function disconnect() { db.prepare("DELETE FROM kv WHERE k='gmail_refresh'").run(); tok = { v: null, exp: 0 }; }
+export async function accountEmail() { return (await g('profile')).emailAddress; }
 const g = async (path) => {
   const r = await fetch(`https://gmail.googleapis.com/gmail/v1/users/me/${path}`, { headers: { Authorization: `Bearer ${await gtoken()}` } });
   if (!r.ok) throw new Error(`Gmail ${r.status}`);
@@ -64,7 +89,7 @@ async function fetchLive() {
 
 /** Pull new mail, classify each message, queue it. Returns counts. */
 export async function checkEmail() {
-  const incoming = live ? await fetchLive() : SAMPLES.filter((s) => !db.prepare('SELECT 1 FROM emails WHERE gmail_id=?').get(s.id));
+  const incoming = isLive() ? await fetchLive() : SAMPLES.filter((s) => !db.prepare('SELECT 1 FROM emails WHERE gmail_id=?').get(s.id));
   const counts = { order: 0, inquiry: 0, unclassified: 0 };
   const ins = db.prepare(`INSERT OR IGNORE INTO emails(gmail_id,thread_id,from_name,from_email,subject,body,received_at,kind,draft)
     VALUES(?,?,?,?,?,?,?,?,?)`);
