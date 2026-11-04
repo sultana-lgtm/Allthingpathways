@@ -44,6 +44,10 @@ CREATE TABLE IF NOT EXISTS qb_mock_invoices (
 CREATE TABLE IF NOT EXISTS kv (k TEXT PRIMARY KEY, v TEXT);
 `);
 
+for (const col of ['qb_payment_id TEXT', 'qb_error TEXT']) {
+  try { db.exec(`ALTER TABLE payments ADD COLUMN ${col}`); } catch { /* already there */ }
+}
+
 export const hashPassword = (pw, salt = randomBytes(16).toString('hex')) =>
   ({ salt, hash: scryptSync(pw, salt, 64).toString('hex') });
 

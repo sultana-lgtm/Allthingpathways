@@ -105,9 +105,44 @@ export function refreshPaid(id) {
   return getOrder(id);
 }
 
-export function recordPayment(id, { method, amount, ref = null, last4 = null }) {
-  db.prepare('INSERT INTO payments(order_id,method,amount,ref,last4) VALUES(?,?,?,?,?)').run(id, method, amount, ref, last4);
-  return refreshPaid(id);
+/** Push one payment to QuickBooks. Never throws; the outcome is stored on the payment row so it can be retried. */
+export async function pushPayment(paymentId) {
+  const p = db.prepare('SELECT * FROM payments WHERE id=?').get(paymentId);
+  if (!p || p.qb_payment_id || p.method === 'quickbooks' || !p.order_id) return;
+  const o = getOrder(p.order_id);
+  if (!o?.qb_invoice_id) return; // picked up later, once the order has an invoice
+  try {
+    const id = await qb.recordPayment(o.qb_invoice_id, p.amount, p.ref);
+    db.prepare('UPDATE payments SET qb_payment_id=?, qb_error=NULL WHERE id=?').run(id, paymentId);
+    const inv = await qb.getInvoice(o.qb_invoice_id).catch(() => null);
+    if (inv) db.prepare("UPDATE orders SET qb_balance=?, qb_synced_at=datetime('now') WHERE id=?").run(inv.balance, o.id);
+  } catch (e) {
+    db.prepare('UPDATE payments SET qb_error=? WHERE id=?').run(String(e.message).slice(0, 300), paymentId);
+  }
+}
+
+export async function syncPendingPayments() {
+  const rows = db.prepare("SELECT id FROM payments WHERE qb_payment_id IS NULL AND method != 'quickbooks' AND order_id IS NOT NULL").all();
+  for (const r of rows) await pushPayment(r.id);
+  return { tried: rows.length };
+}
+
+/** Record a payment taken in the shop (cash, check, card...) and update the QuickBooks invoice to match. */
+export async function recordPayment(id, { method, amount, ref = null, last4 = null }) {
+  const r = db.prepare('INSERT INTO payments(order_id,method,amount,ref,last4) VALUES(?,?,?,?,?)').run(id, method, amount, ref, last4);
+  refreshPaid(id);
+  await pushPayment(Number(r.lastInsertRowid));
+  return getOrder(id);
+}
+
+/** Stripe card payment: safe to call repeatedly (webhook + screen polling) for the same payment. */
+export async function recordCardPayment({ orderId, ref, amount, last4 }) {
+  if (db.prepare('SELECT 1 FROM payments WHERE ref=?').get(ref)) return null;
+  if (!orderId) {
+    db.prepare("INSERT INTO payments(order_id,method,amount,ref,last4) VALUES(NULL,'card',?,?,?)").run(amount, ref, last4);
+    return null; // unmatched: appears on the Card payments screen
+  }
+  return recordPayment(orderId, { method: 'card', amount, ref, last4 });
 }
 
 /** Every 15 minutes: flip orders to paid once the QuickBooks invoice balance hits zero. */
@@ -127,6 +162,7 @@ export async function syncPaidFromQuickBooks() {
       }
     } catch { failed++; }
   }
+  await syncPendingPayments();
   return { checked: open.length, flipped, failed };
 }
 

@@ -151,6 +151,21 @@ export async function listInvoices() {
     .map((r) => ({ ...r, lines: JSON.parse(r.lines || '[]') }));
 }
 
+/** Record a customer payment against an invoice so QuickBooks shows it paid. Returns the QuickBooks payment id. */
+export async function recordPayment(invoiceId, amount, ref) {
+  if (isLive()) {
+    const inv = (await qbo(`invoice/${invoiceId}?minorversion=70`)).Invoice;
+    const j = await qbo('payment?minorversion=70', { method: 'POST', body: {
+      CustomerRef: inv.CustomerRef, TotalAmt: dollars(amount), PaymentRefNum: ref ? String(ref).slice(0, 21) : undefined,
+      Line: [{ Amount: dollars(amount), LinkedTxn: [{ TxnId: invoiceId, TxnType: 'Invoice' }] }] } });
+    return j.Payment.Id;
+  }
+  const row = db.prepare('SELECT * FROM qb_mock_invoices WHERE id=?').get(invoiceId);
+  if (!row) throw new Error('Invoice not found in QuickBooks');
+  db.prepare('UPDATE qb_mock_invoices SET balance=? WHERE id=?').run(Math.max(0, row.balance - amount), invoiceId);
+  return `demo-pay-${Date.now()}`;
+}
+
 /** Demo only: simulate the customer paying the invoice inside QuickBooks. */
 export function mockPay(id) {
   if (isLive()) throw new Error('Only available in demo mode');

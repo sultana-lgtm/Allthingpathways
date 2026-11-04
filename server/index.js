@@ -66,7 +66,7 @@ route('POST', '/api/logout', ({ req, res }) => {
 }, true);
 route('GET', '/api/me', ({ user }) => (user ? { username: user.username, modes: modes() } : (() => { throw err(401, 'Not signed in'); })()), true);
 
-const modes = () => ({ quickbooks: qb.qbMode(), gmail: gm.gmailMode(), stripe: stripe.stripeMode, ai: !!process.env.ANTHROPIC_API_KEY });
+const modes = () => ({ quickbooks: qb.qbMode(), gmail: gm.gmailMode(), stripe: stripe.stripeMode, stripe_online: stripe.onlineMode, ai: !!process.env.ANTHROPIC_API_KEY });
 
 // Orders
 route('GET', '/api/orders', ({ url }) => {
@@ -103,11 +103,27 @@ route('POST', '/api/orders/:id/terminal', async ({ params }) => {
   if (due <= 0) throw err(400, 'Nothing left to pay');
   return { ...(await stripe.startCardPayment(o, due)), amount: due };
 });
+route('POST', '/api/orders/:id/checkout', async ({ req, params }) => {
+  const o = O.getOrder(params.id); if (!o) throw err(404, 'Order not found');
+  const due = o.total - o.payments.reduce((s, p) => s + p.amount, 0);
+  if (due <= 0) throw err(400, 'Nothing left to pay');
+  const c = await stripe.createCheckout(o, due, origin(req));
+  if (!c.demo) setKv(`checkout_${o.id}`, c.id);
+  return { ...c, amount: due };
+});
+// Called when the customer returns from Stripe: records the payment even if the webhook has not arrived.
+route('GET', '/api/orders/:id/checkout-status', async ({ params }) => {
+  const sid = getKv(`checkout_${params.id}`);
+  if (!sid) return { paid: false };
+  const r = await stripe.checkoutResult(sid);
+  if (r.paid) await O.recordCardPayment({ orderId: Number(params.id), ref: r.ref, amount: r.amount, last4: r.last4 });
+  return { paid: r.paid };
+});
 route('GET', '/api/terminal/:pi', async ({ params, url }) => {
   const s = await stripe.paymentStatus(params.pi);
   if (s.status === 'succeeded') {
     const o = O.getOrder(url.searchParams.get('order'));
-    if (o && !o.payments.some((p) => p.ref === params.pi)) O.recordPayment(o.id, { method: 'card', amount: s.amount, ref: params.pi, last4: s.last4 });
+    if (o) await O.recordCardPayment({ orderId: o.id, ref: params.pi, amount: s.amount, last4: s.last4 });
   }
   return s;
 });
@@ -122,16 +138,18 @@ route('GET', '/api/card-payments', async () => {
     for (const c of await stripe.recentCharges()) {
       if (db.prepare('SELECT 1 FROM payments WHERE ref=?').get(c.id)) continue;
       const ord = c.order && db.prepare('SELECT id FROM orders WHERE number=?').get(c.order);
-      db.prepare('INSERT INTO payments(order_id,method,amount,ref,last4,created_at) VALUES(?,?,?,?,?,?)').run(ord?.id ?? null, 'card', c.amount, c.id, c.last4, c.created.slice(0, 19).replace('T', ' '));
+      await O.recordCardPayment({ orderId: ord?.id ?? null, ref: c.id, amount: c.amount, last4: c.last4 });
     }
   } catch { /* Stripe unreachable: show what we have */ }
   return db.prepare(`SELECT p.*, o.number order_number, o.customer_name FROM payments p LEFT JOIN orders o ON o.id=p.order_id
     WHERE p.method='card' ORDER BY p.id DESC`).all();
 });
-route('POST', '/api/card-payments/:id/match', ({ params, b }) => {
+route('POST', '/api/card-payments/:id/match', async ({ params, b }) => {
   const o = O.getOrder(b.order_id); if (!o) throw err(404, 'Order not found');
   db.prepare("UPDATE payments SET order_id=? WHERE id=? AND method='card'").run(o.id, params.id);
-  return { order: O.refreshPaid(o.id) };
+  O.refreshPaid(o.id);
+  await O.pushPayment(Number(params.id)); // tell QuickBooks now that the card payment has an order
+  return { order: O.getOrder(o.id) };
 });
 route('POST', '/api/card-payments/demo', ({ b }) => { // demo mode: simulate a card tap with no matching order
   if (stripe.stripeMode === 'live') throw err(400, 'Demo only');
@@ -197,6 +215,7 @@ route('GET', '/api/gmail/callback', async ({ req, res, url }) => {
 route('POST', '/api/gmail/disconnect', () => { gm.disconnect(); return { ok: true }; });
 route('POST', '/api/quickbooks/import', async () => O.importFromQuickBooks());
 route('POST', '/api/quickbooks/sync', async () => O.syncPaidFromQuickBooks());
+route('POST', '/api/quickbooks/retry-payments', async () => O.syncPendingPayments());
 
 // Email
 route('POST', '/api/email/check', async () => checkEmail());
@@ -249,6 +268,21 @@ const server = createServer(async (req, res) => {
     res.end(type === 'application/json' ? JSON.stringify(data) : data);
   };
   try {
+    if (req.method === 'POST' && url.pathname === '/api/stripe/webhook') {
+      const secret = process.env.STRIPE_WEBHOOK_SECRET;
+      if (!secret) throw err(400, 'STRIPE_WEBHOOK_SECRET is not set');
+      let raw = '';
+      for await (const c of req) { raw += c; if (raw.length > 1e6) throw err(413, 'Body too large'); }
+      let ev;
+      try { ev = stripe.verifyWebhook(raw, req.headers['stripe-signature'], secret); } catch (e) { throw err(400, e.message); }
+      if (ev.type === 'payment_intent.succeeded') {
+        const pi = ev.data.object;
+        const ord = pi.metadata?.order && db.prepare('SELECT id FROM orders WHERE number=?').get(pi.metadata.order);
+        const detail = await stripe.paymentStatus(pi.id).catch(() => ({}));
+        await O.recordCardPayment({ orderId: ord?.id ?? null, ref: pi.id, amount: pi.amount_received ?? pi.amount, last4: detail.last4 ?? null });
+      }
+      return send(200, { received: true });
+    }
     if (url.pathname.startsWith('/api/')) {
       for (const [m, re, fn, open] of R) {
         const hit = req.method === m && re.exec(url.pathname);
