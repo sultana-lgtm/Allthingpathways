@@ -65,6 +65,15 @@ export function seed() {
     db.prepare('INSERT INTO users(username,salt,hash) VALUES(?,?,?)').run(user, salt, hash);
     console.log(`\n  Created staff login  ->  username: ${user}   password: ${pw}\n  (set ADMIN_USER / ADMIN_PASSWORD before first start to choose your own)\n`);
   }
+  // Lockout recovery: set RESET_ADMIN_PASSWORD, restart, sign in, then remove the variable.
+  if (process.env.RESET_ADMIN_PASSWORD) {
+    const user = process.env.ADMIN_USER || 'admin';
+    const { salt, hash } = hashPassword(process.env.RESET_ADMIN_PASSWORD);
+    const r = db.prepare('UPDATE users SET salt=?, hash=? WHERE username=?').run(salt, hash, user);
+    if (!r.changes) db.prepare('INSERT INTO users(username,salt,hash) VALUES(?,?,?)').run(user, salt, hash);
+    db.exec('DELETE FROM sessions');
+    console.log(`\n  Password for "${user}" was reset from RESET_ADMIN_PASSWORD. Remove that variable now.\n`);
+  }
   if (!db.prepare('SELECT COUNT(*) c FROM prices').get().c) {
     const ins = db.prepare('INSERT INTO prices(name,category,unit,rate,source) VALUES(?,?,?,?,?)');
     [

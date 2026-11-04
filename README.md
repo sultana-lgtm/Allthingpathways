@@ -25,3 +25,6 @@ The live QuickBooks, Gmail and Stripe adapters follow each vendor's REST API but
 
 ## Deploying
 A `Dockerfile` and `render.yaml` are included. The app stores everything in one SQLite file (`DB_FILE`, default `/data/printflow.db` in the container), so the host must give it a **persistent disk** mounted at `/data`. Set `ADMIN_PASSWORD` before first start. Serve over HTTPS only (the session cookie is `Secure` when `NODE_ENV=production`).
+
+## Forgot the password
+Set `RESET_ADMIN_PASSWORD` to a new password (in Render: service, Environment) and restart. The `admin` account (or `ADMIN_USER`) gets that password and all sessions are signed out. Remove the variable afterwards, or the password resets on every restart.
