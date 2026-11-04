@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: printflow-connect
+    runtime: docker
+    plan: starter
+    disk:
+      name: printflow-data
+      mountPath: /data
+      sizeGB: 1
+    envVars:
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: SHOP_NAME
+        sync: false
