@@ -54,3 +54,7 @@ iframe.pdf{width:100%;height:520px;border:1px solid var(--line);border-radius:8p
 .login h1{margin-bottom:4px}.login .grid{margin-top:16px}
 @media(max-width:860px){.layout{flex-direction:column}.side{width:auto;height:auto;position:static;flex-direction:row;flex-wrap:wrap;gap:4px}.side .foot,.brand small{display:none}.board{grid-template-columns:repeat(4,240px)}.g2,.g3{grid-template-columns:1fr}main{padding:14px}}
 @media print{.side,.top button{display:none}}
+
+.mail .row{gap:10px}.mail .row .muted{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.gist{margin:8px 0 4px;font-size:15px}
+details.full{margin:2px 0 10px}details.full summary{cursor:pointer;color:var(--blue);font-size:12px}

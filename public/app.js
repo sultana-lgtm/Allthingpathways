@@ -204,11 +204,12 @@ async function viewOrder(id) {
 
 function emailCard(e, mode) {
   const d = e.draft || {};
-  return html`<div class="card mail" data-id="${e.id}"><div class="row"><b>${e.subject || '(no subject)'}</b><span class="sp"></span><span class="muted">${e.from_name} &lt;${e.from_email}&gt; · ${e.received_at.slice(0, 10)}</span></div>
-    <pre>${e.body}</pre>
+  const full = html`<details class="full"><summary>Show full email</summary><pre>${e.clean || e.body}</pre></details>`.s;
+  return html`<div class="card mail" data-id="${e.id}"><div class="row"><b>${e.from_name || e.from_email}</b><span class="muted">${e.subject || '(no subject)'}</span><span class="sp"></span><span class="muted">${e.received_at.slice(0, 10)}</span></div>
+    <div class="gist">${e.summary || (e.clean || e.body).slice(0, 160)}</div>${raw(full)}
     ${mode === 'review' ? raw(html`<form class="draft"><div class="grid g3"><div><label>Customer *</label><input name="customer_name" value="${d.customer_name}" required></div>
       <div><label>Email</label><input name="customer_email" value="${d.customer_email}"></div><div><label>Due date</label><input type="date" name="due_date" value="${d.due_date || ''}"></div></div>
-      <div style="margin:8px 0"><label>Details</label><textarea name="details" rows="2">${d.details}</textarea></div><div class="items-host"></div>
+      <input type="hidden" name="details" value="${d.details}"><div class="items-host" style="margin-top:8px"></div>
       <div class="row" style="margin-top:10px"><button class="primary">Confirm → create order &amp; invoice</button><button type="button" class="danger dismiss">Dismiss</button></div></form>`.s) :
     mode === 'inquiry' ? raw(html`<div class="row"><a class="btn" href="mailto:${e.from_email}?subject=${encodeURIComponent('Re: ' + e.subject)}">Reply</a>
       <button class="to-order">Actually an order</button><button class="dismiss">Mark handled</button></div>`.s) :
@@ -216,9 +217,9 @@ function emailCard(e, mode) {
 }
 
 async function viewEmails(kind, title, mode, blurb) {
-  const [mails] = await Promise.all([api('/emails?kind=' + kind), api('/prices').then((p) => (prices = p))]);
+  const [mails, counts] = await Promise.all([api('/emails?kind=' + kind), api('/emails/counts'), api('/prices').then((p) => (prices = p))]);
   const main = await shell(mode === 'review' ? 'review' : kind === 'inquiry' ? 'inquiries' : 'unclassified', html`<div class="top"><h1>${title}</h1><span class="sp"></span><button id="chk">Check email</button></div>
-    <p class="muted">${blurb}</p>${raw(mails.map((e) => emailCard(e, mode)).join('') || '<div class="card empty">Nothing waiting 🎉</div>')}`);
+    <p class="muted">${blurb}${counts.junk ? ` ${counts.junk} promotional or automatic email${counts.junk === 1 ? ' was' : 's were'} filtered out.` : ''}</p>${raw(mails.map((e) => emailCard(e, mode)).join('') || '<div class="card empty">Nothing waiting 🎉</div>')}`);
   on(main, '#chk', 'click', async () => { const r = await api('/email/check', { method: 'POST' }); toast(`New email: ${r.order} order, ${r.inquiry} inquiry, ${r.unclassified} unclassified`); route(); });
   main.querySelectorAll('.mail').forEach((card) => {
     const id = card.dataset.id, e = mails.find((m) => m.id == id);
