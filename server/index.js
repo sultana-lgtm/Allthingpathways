@@ -224,8 +224,9 @@ route('GET', '/api/emails', ({ url }) => {
   const rows = db.prepare("SELECT * FROM emails WHERE kind=? AND state='pending' ORDER BY received_at DESC").all(kind);
   return rows.map((e) => ({ ...e, draft: e.draft ? JSON.parse(e.draft) : null }));
 });
-route('GET', '/api/emails/counts', () => Object.fromEntries(
-  ['order', 'inquiry', 'unclassified'].map((k) => [k, db.prepare("SELECT COUNT(*) c FROM emails WHERE kind=? AND state='pending'").get(k).c])));
+route('GET', '/api/emails/counts', () => ({
+  ...Object.fromEntries(['order', 'inquiry', 'unclassified'].map((k) => [k, db.prepare("SELECT COUNT(*) c FROM emails WHERE kind=? AND state='pending'").get(k).c])),
+  junk: db.prepare("SELECT COUNT(*) c FROM emails WHERE kind='junk'").get().c }));
 route('POST', '/api/emails/:id/confirm', async ({ params, b }) => {
   const e = db.prepare("SELECT * FROM emails WHERE id=? AND state='pending'").get(params.id);
   if (!e) throw err(404, 'Email not in the queue');
@@ -313,4 +314,5 @@ server.listen(PORT, () => console.log(`PrintFlow Connect running at http://local
 // Background jobs
 setInterval(() => O.syncPaidFromQuickBooks().catch((e) => console.error('QB paid-sync failed:', e.message)), 15 * 60e3).unref();
 setInterval(() => gm.gmailMode() === 'live' && checkEmail().catch((e) => console.error('Gmail check failed:', e.message)), 2 * 60e3).unref();
+gm.reprocess().catch((e) => console.error('Email cleanup failed:', e.message));
 db.prepare('DELETE FROM sessions WHERE created_at < ?').run(Date.now() - SESSION_MS);

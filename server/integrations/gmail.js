@@ -1,7 +1,7 @@
 // Gmail adapter. Live mode reads the shop inbox via the Gmail REST API;
 // demo mode releases a handful of sample emails so the review flow can be tried.
 import { db, getKv, setKv } from '../db.js';
-import { classify } from './parser.js';
+import { classify, cleanBody, htmlToText, isJunk, summarizeEmail } from './parser.js';
 
 // Connected via the in-app "Connect Gmail" flow (token kept in the database) or GMAIL_* env vars.
 const clientId = () => process.env.GMAIL_CLIENT_ID;
@@ -20,6 +20,9 @@ const SAMPLES = [
     body: 'Hi, can you tell me when our posters will be ready? Just checking in on the status.' },
   { id: 'demo-4', from: 'Sam <sam.k@randommail.example>', subject: 'Hey',
     body: 'Saw your shop on the corner. Do you also do photography?' },
+  { id: 'demo-5', from: 'Print Trade Weekly <news@printtradeweekly.example>', subject: 'This week: 40% off paper stock!',
+    body: 'Big savings on paper stock.\n\nView in browser | Manage preferences\nYou are receiving this because you subscribed. Unsubscribe anytime.',
+    headers: { 'list-unsubscribe': '<mailto:unsub@printtradeweekly.example>' } },
 ];
 
 const parseFrom = (f) => {
@@ -71,35 +74,74 @@ function bodyText(payload) {
     for (const c of p.parts || []) { const t = walk(c); if (t) return t; }
     return '';
   };
-  return walk(payload);
+  const html = (p) => {
+    if (p.mimeType === 'text/html' && p.body?.data) return Buffer.from(p.body.data, 'base64url').toString('utf8');
+    for (const c of p.parts || []) { const t = html(c); if (t) return t; }
+    return '';
+  };
+  return walk(payload) || htmlToText(html(payload));
 }
 
 async function fetchLive() {
-  const list = await g(`messages?q=${encodeURIComponent(process.env.GMAIL_QUERY || 'in:inbox newer_than:14d -category:promotions')}&maxResults=25`);
+  const list = await g(`messages?q=${encodeURIComponent(process.env.GMAIL_QUERY || 'in:inbox newer_than:14d -category:promotions -category:social -category:forums')}&maxResults=25`);
   const out = [];
   for (const { id } of list.messages || []) {
     if (db.prepare('SELECT 1 FROM emails WHERE gmail_id=?').get(id)) continue;
     const m = await g(`messages/${id}?format=full`);
     const h = (n) => m.payload.headers.find((x) => x.name.toLowerCase() === n)?.value || '';
     out.push({ id, thread: m.threadId, from: h('from'), subject: h('subject'), body: bodyText(m.payload) || m.snippet,
+      headers: { 'list-unsubscribe': h('list-unsubscribe'), precedence: h('precedence'), 'auto-submitted': h('auto-submitted') },
       date: new Date(+m.internalDate).toISOString() });
   }
   return out;
 }
 
+/** Shorter AI summary when an Anthropic key is set; otherwise the rule-based one is used. */
+async function aiSummary(subject, clean, fallback) {
+  if (!process.env.ANTHROPIC_API_KEY) return fallback;
+  try {
+    const r = await fetch('https://api.anthropic.com/v1/messages', { method: 'POST',
+      headers: { 'x-api-key': process.env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
+      body: JSON.stringify({ model: process.env.ANTHROPIC_MODEL || 'claude-haiku-5-5', max_tokens: 100,
+        messages: [{ role: 'user', content: `Summarize this email to a print shop in ONE short line (max 25 words): what the customer wants, quantities, and any deadline. No greeting.\n\nSubject: ${subject}\n\n${clean.slice(0, 3000)}` }] }) });
+    if (!r.ok) return fallback;
+    return (await r.json()).content?.[0]?.text?.trim() || fallback;
+  } catch { return fallback; }
+}
+
+/** Fill in the clean text / summary for stored mail that has none yet, and hide junk. Safe to run repeatedly. */
+export async function reprocess() {
+  const rows = db.prepare("SELECT * FROM emails WHERE summary IS NULL AND state='pending'").all();
+  for (const e of rows) {
+    const clean = cleanBody(e.body);
+    const draft = e.draft ? JSON.parse(e.draft) : null;
+    const hasItems = !!draft?.items?.length;
+    if (!hasItems && isJunk({ from_email: e.from_email, subject: e.subject, body: e.body })) {
+      db.prepare("UPDATE emails SET kind='junk', state='dismissed', clean=?, summary='' WHERE id=?").run(clean, e.id);
+      continue;
+    }
+    const base = summarizeEmail(e.kind, draft, clean, e.from_name);
+    const summary = hasItems ? base : await aiSummary(e.subject, clean, base);
+    db.prepare('UPDATE emails SET clean=?, summary=? WHERE id=?').run(clean, summary, e.id);
+  }
+}
+
 /** Pull new mail, classify each message, queue it. Returns counts. */
 export async function checkEmail() {
   const incoming = isLive() ? await fetchLive() : SAMPLES.filter((s) => !db.prepare('SELECT 1 FROM emails WHERE gmail_id=?').get(s.id));
-  const counts = { order: 0, inquiry: 0, unclassified: 0 };
-  const ins = db.prepare(`INSERT OR IGNORE INTO emails(gmail_id,thread_id,from_name,from_email,subject,body,received_at,kind,draft)
-    VALUES(?,?,?,?,?,?,?,?,?)`);
+  const counts = { order: 0, inquiry: 0, unclassified: 0, junk: 0 };
+  const ins = db.prepare(`INSERT OR IGNORE INTO emails(gmail_id,thread_id,from_name,from_email,subject,body,received_at,kind,draft,state)
+    VALUES(?,?,?,?,?,?,?,?,?,?)`);
   for (const e of incoming) {
     const f = parseFrom(e.from);
-    const c = classify({ from_email: f.email, subject: e.subject, body: e.body });
+    const clean = cleanBody(e.body);
+    const c = classify({ from_email: f.email, subject: e.subject, body: clean || e.body });
+    if (!c.draft?.items?.length && isJunk({ from_email: f.email, subject: e.subject, body: e.body, headers: e.headers })) { c.kind = 'junk'; c.draft = null; }
     if (c.draft && c.kind === 'order' && !c.draft.customer_name) c.draft.customer_name = f.name;
     ins.run(e.id, e.thread || e.id, f.name, f.email, e.subject, e.body, e.date || new Date().toISOString(),
-      c.kind, c.draft ? JSON.stringify(c.draft) : null);
-    counts[c.kind]++;
+      c.kind, c.draft ? JSON.stringify(c.draft) : null, c.kind === 'junk' ? 'dismissed' : 'pending');
+    if (c.kind === 'junk') counts.junk++; else counts[c.kind]++;
   }
+  await reprocess();
   return counts;
 }

@@ -50,3 +50,38 @@ export function classify({ from_email, subject, body }) {
   if (isInquiry) return { kind: 'inquiry', draft: { customer_name: known?.customer_name || '' } };
   return { kind: 'unclassified', draft: null };
 }
+
+const decode = (t) => t.replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'");
+export const htmlToText = (h) => decode(h.replace(/<(style|script)[\s\S]*?<\/\1>/gi, '').replace(/<br\s*\/?>|<\/(p|div|tr|li|h\d)>/gi, '\n').replace(/<[^>]+>/g, ''));
+
+/** Strip quoted replies, signatures and footers so only what the sender actually wrote is left. */
+export function cleanBody(text) {
+  const out = [];
+  for (const line of String(text || '').replace(/\r/g, '').split('\n')) {
+    if (/^On .{5,120}wrote:\s*$/i.test(line) || /^-{2,}\s*(Original Message|Forwarded message)/i.test(line) || /^_{5,}$/.test(line)
+      || /^-- ?$/.test(line) || /^Sent from my (iPhone|iPad|Android)/i.test(line) || /^From:\s.+<.+>/.test(line) && out.length) break;
+    if (line.trim().startsWith('>')) continue;
+    out.push(line.trimEnd());
+  }
+  return out.join('\n').replace(/\n{3,}/g, '\n\n').trim();
+}
+
+/** Promotions, newsletters and automatic mail: hidden from the queues. Never applies when order items were found. */
+export function isJunk({ from_email = '', subject = '', body = '', headers = {} }) {
+  if (headers['list-unsubscribe'] || /bulk|list|junk/i.test(headers.precedence || '') || /auto-(generated|replied)/i.test(headers['auto-submitted'] || '')) return true;
+  if (/(^|[._-])(no-?reply|donotreply|do-not-reply|mailer-daemon|notifications?|newsletter|marketing|news)@/i.test(from_email)) return true;
+  if (/\bunsubscribe\b/i.test(body) && /(view in browser|manage (your )?preferences|you are receiving this)/i.test(body)) return true;
+  return /^(out of office|automatic reply|delivery status notification|undeliverable)/i.test(subject);
+}
+
+const shorten = (t, n) => (t.length > n ? t.slice(0, n - 1).replace(/\s+\S*$/, '') + '…' : t);
+const firstSentences = (t, n = 170) => shorten(t.replace(/\s+/g, ' ').replace(/^(hi|hello|hey|dear)[^,.!\n]{0,40}[,!.]\s*/i, '').trim(), n);
+
+/** One-line summary shown in the queues. */
+export function summarizeEmail(kind, draft, clean, fromName) {
+  if (kind === 'order' && draft?.items?.length) {
+    const items = draft.items.map((i) => `${i.qty} × ${i.description}`).join(', ');
+    return `${draft.customer_name || fromName || 'Customer'}: ${items}${draft.due_date ? ` · due ${draft.due_date}` : ''}`;
+  }
+  return firstSentences(clean) || '(empty message)';
+}
